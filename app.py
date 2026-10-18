@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import csv
@@ -6,17 +7,27 @@ import json
 import re
 import shutil
 import socket
+import subprocess
 import time
 import zipfile
+
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-import subprocess
+import requests
 import streamlit as st
+
+from playwright.sync_api import (
+    sync_playwright,
+    TimeoutError as PlaywrightTimeoutError,
+)
+
 
 @st.cache_resource
 def install_playwright_browser():
+    """Install Chromium if it is missing."""
+
     result = subprocess.run(
         [
             "python",
@@ -38,15 +49,12 @@ def install_playwright_browser():
 
     return True
 
+
 try:
     install_playwright_browser()
 except Exception as e:
     st.error(f"Browser setup failed: {e}")
     st.stop()
-import requests
-import streamlit as st
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-
 
 APP_DIR = Path(__file__).resolve().parent
 OUTPUTS_DIR = APP_DIR / "outputs"
