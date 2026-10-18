@@ -16,6 +16,9 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import requests
+
+import sys
+import subprocess
 import streamlit as st
 
 from playwright.sync_api import (
@@ -23,35 +26,31 @@ from playwright.sync_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
-
 @st.cache_resource
-def install_playwright_browser():
-    """Install Chromium if it is missing."""
-
-    result = subprocess.run(
+def setup_browser():
+    # Use the same Python interpreter running Streamlit.
+    subprocess.run(
         [
-            "python",
+            sys.executable,
             "-m",
             "playwright",
             "install",
             "chromium",
         ],
+        check=True,
         capture_output=True,
         text=True,
-        timeout=180,
+        timeout=240,
     )
 
-    if result.returncode != 0:
-        raise RuntimeError(
-            "Chromium installation failed:\n"
-            + result.stderr[-3000:]
-        )
-
-    return True
-
-
 try:
-    install_playwright_browser()
+    setup_browser()
+except subprocess.CalledProcessError as e:
+    st.error(
+        "Chromium installation failed:\n"
+        + (e.stderr or str(e))[-3000:]
+    )
+    st.stop()
 except Exception as e:
     st.error(f"Browser setup failed: {e}")
     st.stop()
