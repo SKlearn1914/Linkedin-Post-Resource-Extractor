@@ -1,116 +1,102 @@
 # LinkedIn Post Resource Extractor
 
-**Turn LinkedIn posts into organized, usable resources with Python.**
-
-LinkedIn posts often contain valuable learning resources, cybersecurity labs, GitHub repositories, courses, and useful websites. Manually collecting these resources can be time-consuming.
-
-**LinkedIn Post Resource Extractor** is a Python-based web application designed to simplify this process by extracting accessible information from a LinkedIn post URL and organizing it into convenient formats.
+A local Python project that accepts a LinkedIn post URL and collects accessible post details, links, link labels/context, image URLs, and a screenshot. It exports CSV, JSON, TXT, and ZIP reports.
 
 ## Features
 
-- **Link Extraction:** Collects accessible external URLs from a post.
-- **Link Names and Context:** Captures available link text and surrounding information to help identify each resource.
-- **Image Detection and Download:** Detects and downloads accessible post images.
-- **Shortened URL Resolution:** Attempts to resolve supported shortened links to their destination URLs.
-- **Multiple Export Formats:** Exports collected information to CSV, JSON, and TXT files.
-- **Screenshot Capture:** Saves a screenshot of the loaded page.
-- **Browser Automation:** Uses Playwright to load and inspect dynamic web content.
-- **Simple Web Interface:** Provides an easy-to-use interface powered by Streamlit.
-- **Report Packaging:** Organizes collected results into a downloadable report.
+- Streamlit web UI running locally on your computer
+- Visible Chrome mode with a dedicated persistent browser profile
+- Headless mode for publicly accessible pages
+- Collects page metadata, post text, external hyperlinks, link labels, nearby context, and accessible image URLs
+- Best-effort redirect resolution for recognized short-link services
+- Optional image downloads with an 8 MB per-image limit
+- Screenshot and machine-readable CSV/JSON exports
+- Deduplicates URLs and records the source/context when available
 
-## Who Can Benefit?
+## Important limitations
 
-- **Students:** Collect free courses, tutorials, and study materials.
-- **Cybersecurity Learners:** Organize security labs, tools, and research resources.
-- **Developers:** Gather GitHub repositories, documentation, and programming tutorials.
-- **Researchers:** Organize useful links and related images.
-- **Non-LinkedIn Users:** Access external resources extracted from publicly accessible posts without manually navigating LinkedIn.
+LinkedIn can require login, limit visibility, lazy-load content, or change its HTML structure. This project only inspects content accessible to the browser and does not bypass access controls. It cannot guarantee that every comment, image, or hidden attachment will be found. You may need to sign in manually in the separate browser window and expand/scroll the post before extraction.
 
-## Tech Stack
+Use the tool only for content you are allowed to access and respect LinkedIn's terms and privacy expectations. Do not share the `browser_profile` directory: it may contain authentication session data.
 
-- **Python** — Core programming language
-- **Streamlit** — Web interface
-- **Playwright** — Browser automation
-- **Requests** — HTTP requests and resource downloads
-- **CSV, JSON, TXT** — Data export formats
+## Windows setup
 
-## Getting Started
+Recommended: Windows 10/11, Python 3.11–3.14.
 
-### Prerequisites
+1. Extract the ZIP file to a folder, for example `D:\Python Project\LinkedIn Post Extractor`.
+2. Open PowerShell in that folder.
+3. Create a virtual environment:
 
-- Python 3.10 or later
-- pip package manager
-- Internet connection
-- A supported browser environment for Playwright
-
-### Installation
-
-1. Clone this repository:
-
-   ```bash
-   git clone YOUR_REPOSITORY_URL
+   ```powershell
+   py -m venv .venv
+   .\.venv\Scripts\Activate.ps1
    ```
 
-2. Navigate to the project directory:
+   If PowerShell blocks activation, run the app using the venv Python directly:
+   `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`
 
-   ```bash
-   cd LinkedIn_Post_Resource_Extractor
+4. Install dependencies:
+
+   ```powershell
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements.txt
    ```
 
-3. Install the dependencies:
+5. Install Playwright Chromium:
 
-   ```bash
-   pip install -r requirements.txt
+   ```powershell
+   python -m playwright install chromium
    ```
 
-4. Install the Playwright browser:
+6. Start the app:
 
-   ```bash
-   playwright install chromium
+   ```powershell
+   python -m streamlit run app.py
    ```
 
-5. Start the application:
+7. Open the local address Streamlit prints, usually `http://localhost:8501`.
 
-   ```bash
-   streamlit run app.py
-   ```
+You can also double-click `run_windows.bat` after dependencies are installed.
 
-6. Open the local URL displayed in your terminal, enter a LinkedIn post URL, and follow the application's instructions.
+## Using the tool
 
-## Output
+1. Paste a LinkedIn post URL, such as `https://lnkd.in/p/dzaCm3GR`.
+2. Choose **Visible Chrome** if the post needs a sign-in session. It opens a separate browser profile. Sign in manually if required.
+3. Set a wait delay long enough for the post to load. You can also expand the post and load comments in the browser before the extraction delay ends.
+4. Choose whether to resolve known short links and download images.
+5. Click **Extract post details**.
+6. Download the ZIP report or individual CSV/JSON/TXT files.
 
-Depending on the information accessible on the page, the application can generate:
+## Output files
 
-- Extracted links with their available names and context
-- JSON and CSV data files
-- A text summary
-- Downloaded images
-- A screenshot of the loaded page
-- A packaged report containing collected results
+- `post_details.json`: metadata, text, link records, image records, and extraction information
+- `links.csv`: link name/label, original URL, resolved destination (if found), source container, context
+- `images.csv`: image URL, alt text, source, dimensions, local path, download status
+- `post_text.txt`: extracted text
+- `post_screenshot.png`: screenshot of the loaded page
+- `images/`: downloaded accessible images, if enabled
+- `summary.json`: counts and page information
+- `linkedin_extraction_report.zip`: all output files
 
-## Limitations
+## Troubleshooting
 
-The extractor can only collect information that is accessible to its browser session. LinkedIn login requirements, access restrictions, dynamic page behavior, and anti-automation protections may limit results.
+- **No links found:** switch to Visible Chrome, sign in manually if required, increase the wait delay, and confirm the post opens in the browser.
+- **Browser install error:** run `python -m playwright install chromium`.
+- **Chrome profile already in use:** close the other instance of this project's browser and retry.
+- **Links are missing:** increase scroll rounds; expand “See more” and load comments. No extractor can guarantee hidden/private content.
+- **Short link not resolved:** the shortener may block automated requests, require cookies, or use a redirect mechanism the resolver does not support. The original URL is still saved.
+- **Images don't download:** the host may block requests, require authorization, or use a URL that expires. The image URL is still recorded when detected.
 
-It does not guarantee extraction of every comment, link, or image, and it does not bypass authentication or access controls. Shortened URL resolution depends on destination availability and network restrictions.
+## Project structure
 
-Use this tool responsibly and respect LinkedIn's terms, website policies, privacy, and applicable laws.
+```text
+linkedin_post_extractor/
+├── app.py
+├── requirements.txt
+├── README.md
+├── run_windows.bat
+├── .gitignore
+└── outputs/
+```
 
-## Future Improvements
-
-- More reliable identification of links and their associated titles
-- Improved image filtering and duplicate detection
-- Support for batch processing multiple post URLs
-- Advanced search and filtering for extracted resources
-- Additional export formats
-- Better extraction summaries and reporting
-
-## Author
-
-**SKLearn Academy**
-
-Built with Python to make collecting and organizing online learning resources easier.
-
-**Learn | Build | Grow**
-
-#Python #Automation #Playwright #Streamlit #Cybersecurity #WebAutomation
+Generated reports and the browser profile are created locally and should not be uploaded to a public repository if they contain private content or session data.
