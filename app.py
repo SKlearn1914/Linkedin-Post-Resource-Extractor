@@ -12,6 +12,37 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
+import subprocess
+import streamlit as st
+
+@st.cache_resource
+def install_playwright_browser():
+    result = subprocess.run(
+        [
+            "python",
+            "-m",
+            "playwright",
+            "install",
+            "chromium",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Chromium installation failed:\n"
+            + result.stderr[-3000:]
+        )
+
+    return True
+
+try:
+    install_playwright_browser()
+except Exception as e:
+    st.error(f"Browser setup failed: {e}")
+    st.stop()
 import requests
 import streamlit as st
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
